@@ -1,6 +1,6 @@
 # Azure App Service Terraform + Azure DevOps CI
 
-This repository provisions an Azure dotnet core Web App (App Service) using Terraform and validates infrastructure changes through an Azure DevOps CI pipeline.
+This repository provisions an Azure dotnet Linux Web App (App Service) using Terraform and validates infrastructure changes through an Azure DevOps CI pipeline.
 
 ## Folder Structure
 
