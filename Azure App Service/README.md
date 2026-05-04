@@ -27,8 +27,8 @@ terraform plan -out=tfplan
 
 # Azure App Service with Terraform CI Architecture
 
-
-flowchart
+```mermaid
+flowchart LR
     Dev[Developer] --> Repo[Azure Repos or GitHub]
     Repo --> Pipeline[Azure DevOps CI Pipeline\nterraform fmt/init/validate/plan]
 
