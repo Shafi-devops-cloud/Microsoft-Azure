@@ -1,0 +1,57 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infra/terraform/*
+      - pipelines/azure-pipelines.yml
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  terraformVersion: "1.8.5"
+  workingDirectory: "$(System.DefaultWorkingDirectory)/infra/terraform"
+
+stages:
+  - stage: ValidateAndPlan
+    displayName: "Terraform Validate and Plan"
+    jobs:
+      - job: TerraformCI
+        displayName: "Run Terraform CI"
+        steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            displayName: "Install Terraform"
+            inputs:
+              terraformVersion: "$(terraformVersion)"
+
+          - task: AzureCLI@2
+            displayName: "Terraform Init, Validate, Plan"
+            inputs:
+              azureSubscription: "YOUR-AZURE-SERVICE-CONNECTION"
+              scriptType: "bash"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                set -euo pipefail
+                cd "$(workingDirectory)"
+
+                terraform fmt -check -recursive
+                terraform init -input=false
+                terraform validate
+                terraform plan -input=false -out=tfplan
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish tfplan artifact"
+            inputs:
+              PathtoPublish: "$(workingDirectory)/tfplan"
+              ArtifactName: "tfplan"
+              publishLocation: "Container"
+
