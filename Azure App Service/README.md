@@ -25,3 +25,26 @@ terraform validate
 terraform plan -out=tfplan
 ```
 
+# Azure App Service with Terraform CI Architecture
+
+
+flowchart
+    Dev[Developer] --> Repo[Azure Repos or GitHub]
+    Repo --> Pipeline[Azure DevOps CI Pipeline\nterraform fmt/init/validate/plan]
+
+    Pipeline --> SC[Azure Service Connection]
+    SC --> ARM[Azure Resource Manager]
+
+    subgraph AzureSubscription[Azure Subscription]
+      RG[Resource Group]
+      ASP[App Service Plan Linux]
+      WEB[Azure Linux Web App]
+    end
+
+    ARM --> RG
+    RG --> ASP
+    ASP --> WEB
+
+    State[Azure Storage Account\nTerraform Remote State] <---> Pipeline
+```
+
