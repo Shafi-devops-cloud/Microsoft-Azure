@@ -56,9 +56,9 @@ flowchart TD
 |   `-- terraform/
 |       |-- main.tf
 |       |-- outputs.tf
-|       |-- terraform.tfvars.example
+|       |-- terraform.tfvars
 |       |-- variables.tf
-|       `-- versions.tf
+|       `-- providers.tf
 |-- azure-pipelines.yml
 |-- .gitignore
 `-- README.md
@@ -71,25 +71,6 @@ flowchart TD
 - Azure service connection with permission to create resource groups and storage accounts.
 - A pre-created Azure Storage container for Terraform state.
 
-## Bootstrap Terraform State Backend
-
-Create the backend storage once before running the pipeline. Replace the names with globally unique values.
-
-```bash
-az group create --name rg-tfstate-dev --location eastus
-az storage account create \
-  --name yourtfstatestorageaccount \
-  --resource-group rg-tfstate-dev \
-  --location eastus \
-  --sku Standard_LRS \
-  --kind StorageV2 \
-  --https-only true \
-  --min-tls-version TLS1_2
-az storage container create \
-  --name tfstate \
-  --account-name yourtfstatestorageaccount \
-  --auth-mode login
-```
 
 ## Configure The Pipeline
 
@@ -112,19 +93,6 @@ The main settings are in `infra/terraform/variables.tf`. For local testing, copy
 cp infra/terraform/terraform.tfvars.example infra/terraform/terraform.tfvars
 ```
 
-Common variables:
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `project_name` | `storage` | Naming and tags |
-| `environment` | `dev` | Environment name |
-| `location` | `eastus` | Azure deployment region |
-| `account_tier` | `Standard` | General-purpose StorageV2 tier |
-| `account_replication_type` | `LRS` | Storage redundancy |
-| `blob_access_tier` | `Hot` | Blob access tier |
-| `containers` | `data` | Blob containers to create |
-
-If `storage_account_name` is not set, Terraform generates a globally valid name using the project, environment, and a random suffix.
 
 ## Local Terraform Commands
 
@@ -141,4 +109,4 @@ terraform apply
 
 ## Outputs
 
-Terraform returns the resource group name, storage account name, storage account resource ID, primary blob endpoint, and created container names.
+Terraform returns the  storage account name, storage account resource ID, and created container names.
