@@ -1,0 +1,93 @@
+trigger:
+- main
+
+pool:
+  name: Default
+
+variables:
+  terraformVersion: '1.8.5'
+  workingDirectory: '$(Build.SourcesDirectory)'
+
+stages:
+- stage: Terraform_Plan
+  displayName: 'Terraform Plan'
+  jobs:
+  - job: Plan
+    displayName: 'Terraform Init Validate Plan'
+    steps:
+
+    - task: TerraformInstaller@1
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: '$(terraformVersion)'
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Init'
+      inputs:
+        azureSubscription: 'your-azure-service-connection'
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          cd "$(workingDirectory)"
+          terraform init
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Validate'
+      inputs:
+        azureSubscription: 'YOUR-AZURE-SERVICE-CONNECTION'
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          cd "$(workingDirectory)"
+          terraform validate
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Plan'
+      inputs:
+        azureSubscription: 'YOUR-AZURE-SERVICE-CONNECTION'
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          cd "$(workingDirectory)"
+          terraform plan -out=tfplan
+
+
+- stage: Terraform_Apply
+  displayName: 'Terraform Apply'
+  dependsOn: Terraform_Plan
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'Apply Terraform'
+    environment: 'dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Init'
+            inputs:
+              azureSubscription: 'YOUR-AZURE-SERVICE-CONNECTION'
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                cd "$(workingDirectory)"
+                terraform init
+
+          - task: AzureCLI@2
+            displayName: 'Terraform Apply'
+            inputs:
+              azureSubscription: 'YOUR-AZURE-SERVICE-CONNECTION'
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                cd "$(workingDirectory)"
+                terraform apply -auto-approve
