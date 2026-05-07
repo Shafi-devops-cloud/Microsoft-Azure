@@ -1,68 +1,66 @@
-# Azure Storage Account Private Endpoint with Terraform and Azure DevOps pipeline
+# Storage Account Private Endpoint using Terraform
 
-This Terraform configuration creates:
+This is a simple Terraform project that creates an Azure Storage Account with a private endpoint inside a virtual network.
+
+## What Gets Created
 
 - Resource group
-- Virtual network and subnet for private endpoints
-- Storage account with public network access disabled
-- Private endpoint for the selected storage subresource
-- Private DNS zone and VNet link
+- Virtual network
+- Subnet
+- Storage account
+- Private endpoint for Blob Storage
+- Private DNS zone for Blob Storage
+- DNS link between the private DNS zone and VNet
 
-## Usage
+## Terraform Files
+
+- `versions.tf` - Terraform provider setup
+- `variables.tf` - Azure location variable
+- `main.tf` - Azure resources
+- `outputs.tf` - useful output values
+- `azure-pipelines.yml` - simple Azure DevOps pipeline
+
+## Run Locally
 
 ```powershell
 terraform init
+terraform fmt
+terraform validate
 terraform plan
 terraform apply
 ```
 
-To customize values:
+## Change Azure Region
 
-```powershell
-Copy-Item terraform.tfvars.example terraform.tfvars
+Edit `terraform.tfvars.example` or create a `terraform.tfvars` file:
+
+```hcl
+location = "eastus"
 ```
 
-Then edit `terraform.tfvars`.
+## Azure Pipeline
 
-## Azure Pipelines
-
-The repository includes `azure-pipelines.yml` to run:
-
-- `terraform init`
-- `terraform fmt -check`
-- `terraform validate`
-- `terraform plan`
-- optional `terraform apply`
-
-Before running the pipeline, update this variable in `azure-pipelines.yml`:
+Before running the pipeline, update this value in `azure-pipelines.yml`:
 
 ```yaml
 azureServiceConnection: "MY-SERVICE-CONNECTION"
 ```
 
-Use the name of an Azure DevOps service connection that has permission to create resources in the target subscription.
+The pipeline runs:
 
-The apply step is commented out by default. When you are ready to create the Azure resources, uncomment the `Terraform Apply` step in `azure-pipelines.yml`.
+- Terraform init
+- Terraform format check
+- Terraform validate
+- Terraform plan
 
-## Storage Subresources
+The apply step is commented out. Uncomment it when you are ready to deploy resources.
 
-The default private endpoint is for Blob Storage:
+## Important
+
+The storage account disables public network access:
 
 ```hcl
-private_endpoint_subresource = "blob"
+public_network_access_enabled = false
 ```
 
-Supported values:
-
-- `blob`
-- `file`
-- `queue`
-- `table`
-- `web`
-- `dfs`
-
-Each subresource uses the matching Azure private DNS zone, such as `privatelink.blob.core.windows.net` for Blob Storage.
-
-## Notes
-
-The storage account sets `public_network_access_enabled = false`, so access should resolve through the private endpoint from inside the linked VNet.
+So the storage account should be accessed through the private endpoint from inside the VNet.
