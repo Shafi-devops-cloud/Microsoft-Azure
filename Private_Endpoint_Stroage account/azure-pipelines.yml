@@ -1,0 +1,69 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  terraformVersion: "1.5.0"
+  azureServiceConnection: "MY-SERVICE-CONNECTION"
+  terraformFolder: "$(System.DefaultWorkingDirectory)"
+
+steps:
+  - checkout: self
+
+  - task: TerraformInstaller@1
+    displayName: Install Terraform
+    inputs:
+      terraformVersion: "$(terraformVersion)"
+
+  - task: AzureCLI@2
+    displayName: Terraform Init
+    inputs:
+      azureSubscription: "$(azureServiceConnection)"
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: "$(terraformFolder)"
+      inlineScript: |
+        terraform init
+
+  - task: AzureCLI@2
+    displayName: Terraform Format Check
+    inputs:
+      azureSubscription: "$(azureServiceConnection)"
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: "$(terraformFolder)"
+      inlineScript: |
+        terraform fmt -check
+
+  - task: AzureCLI@2
+    displayName: Terraform Validate
+    inputs:
+      azureSubscription: "$(azureServiceConnection)"
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: "$(terraformFolder)"
+      inlineScript: |
+        terraform validate
+
+  - task: AzureCLI@2
+    displayName: Terraform Plan
+    inputs:
+      azureSubscription: "$(azureServiceConnection)"
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: "$(terraformFolder)"
+      inlineScript: |
+        terraform plan
+
+  # Uncomment this step when you are ready to create resources in Azure.
+  # - task: AzureCLI@2
+  #   displayName: Terraform Apply
+  #   inputs:
+  #     azureSubscription: "$(azureServiceConnection)"
+  #     scriptType: bash
+  #     scriptLocation: inlineScript
+  #     workingDirectory: "$(terraformFolder)"
+  #     inlineScript: |
+  #       terraform apply -auto-approve
